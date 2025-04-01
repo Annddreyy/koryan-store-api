@@ -16,6 +16,26 @@ def get_products():
         products = cur.fetchall()
         products_json = []
         for product in products:
+            cur.execute(f'SELECT * FROM discount WHERE product_id={product[0]}')
+            discount = cur.fetchone()
+
+            cur.execute(f'SELECT * FROM popular WHERE product_id={product[0]}')
+            popular = cur.fetchone()
+
+            cur.execute(f'SELECT * FROM new_product WHERE product_id={product[0]}')
+            new_product = cur.fetchone()
+
+            signature = ''
+            new_price = ''
+            if discount:
+                signature = 'discount'
+                new_price = discount[2]
+            elif popular:
+                signature = 'popular'
+            elif new_product:
+                signature = 'new_product'
+
+
             products_json.append(
                 {
                     'id': product[0],
@@ -26,7 +46,9 @@ def get_products():
                     'description': product[5],
                     'price': product[6],
                     'amount': product[7],
-                    'img_path': product[8]
+                    'img_path': product[8],
+                    'signature': signature,
+                    'new_price': new_price
                 }
             )
 
