@@ -35,6 +35,8 @@ def get_products():
             elif new_product:
                 signature = 'new_product'
 
+            cur.execute(f'SELECT title FROM product_type WHERE product_type_id={product[9]}')
+            product_type = cur.fetchone()
 
             products_json.append(
                 {
@@ -48,7 +50,8 @@ def get_products():
                     'amount': product[7],
                     'img_path': product[8],
                     'signature': signature,
-                    'new_price': new_price
+                    'new_price': new_price,
+                    'product_type': product_type[0]
                 }
             )
 
