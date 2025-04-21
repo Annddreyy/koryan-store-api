@@ -1,22 +1,15 @@
 from flask import Blueprint, request
 from db import get_connection
 import hashlib
-
-def sha256_hash(message):
-    message = message.encode('utf-8')
-    sha256 = hashlib.sha256()
-    sha256.update(message)
-    hash_code = sha256.hexdigest()
-    return hash_code
-
+import base64
 
 post_product_blueprint = Blueprint('post_product', __name__)
 
 @post_product_blueprint.route('/api/v1/product', methods=['POST'])
 def post_user():
+    conn = get_connection()
+    cur = conn.cursor()
     try:
-        conn = get_connection()
-        cur = conn.cursor()
 
         product = request.get_json()
 
@@ -26,15 +19,19 @@ def post_user():
         description = product['description']
         price = product['price']
         amount = product['amount']
-        main_image = product['main-image']
         producer = product['producer']
+        main_image = product['main-image']
+        mini_image = product['mini-image']
 
-        cur.execute('INSERT INTO user(title, producer, year, short-description, ' \
+        main_image = create_image(main_image, 'product/', '.png')
+
+        cur.execute('INSERT INTO product(title, producer, year, short_description, ' \
         'description, price, amount, img_path) ' +
         f"VALUES('{title}', '{producer}', {year}, \
         '{short_description}', '{description}', {price}, \
         {amount}, '{main_image}')")
-                    
+        
+        print('ok')
         conn.commit()
 
         cur.execute(f"SELECT product_id FROM product ORDER BY product_id DESC LIMIT 1")
@@ -50,7 +47,24 @@ def post_user():
             'status': 'error',
             'message': str(e)
         }
+    
     finally:
         cur.close()
         conn.close()
 
+def create_image(image_path, folder, file_type):
+    image_bytes = bytes(image_path)
+
+    github_token = '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'
+
+    g = Github(github_token)
+
+    repo = g.get_user().get_repo('koreyan-store-images')
+    file_name = generate_random_filename(16) + file_type
+    repo.create_file(folder + file_name, 'Add file', image_bytes)
+
+    return file_name
+
+def generate_random_filename(length=16):
+    characters = string.digits
+    return ''.join(random.choice(characters) for _ in range(length))

@@ -14,9 +14,10 @@ post_user_blueprint = Blueprint('post_user', __name__)
 
 @post_user_blueprint.route('/api/v1/users', methods=['POST'])
 def post_user():
+    conn = get_connection()
+    cur = conn.cursor()
     try:
-        conn = get_connection()
-        cur = conn.cursor()
+    
 
         user = request.get_json()
 
